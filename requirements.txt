@@ -1,0 +1,7 @@
+-e file:///home/rahaib-anas/Code/Python/Backend/2/AI_Project_Manager_CRM
+asgiref==3.12.1
+django==6.1.2
+djangorestframework==3.18.3
+djangorestframework-simplejwt==5.5.1
+pyjwt==2.15.1
+sqlparse==0.6.0
