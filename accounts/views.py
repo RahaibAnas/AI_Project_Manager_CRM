@@ -9,28 +9,32 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer, TeamSerializer,CustomUserSerializer
 from .permissions import IsAdmin
 
+User = get_user_model()
 
 # Create your views here.
+
 
 @api_view(["POST"])
 @permission_classes([IsAdmin])
 def register(request):
     print(request.path)
-    is_many = isinstance(request.data,list)
-    serializer = UserSerializer(data=request.data,many=is_many)
+    is_many = isinstance(request.data, list)
+    serializer = UserSerializer(data=request.data, many=is_many)
     if not serializer.is_valid():
-        return Response({
-            "success":False,
-            "error": serializer.errors
-        },status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"success": False, "error": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     serializer.save()
-    return Response({
-        "success":True,
-        "message":"User Registered successfully",
-    })
+    return Response(
+        {
+            "success": True,
+            "message": "User Registered successfully",
+        }
+    )
 
 
 @api_view(["POST"])
@@ -101,3 +105,37 @@ def logout(request):
             {"success": False, "message": "invalid or expired token"},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+# ==========================================
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def team_view(request):
+    data_list = None
+    if request.user.role == "ADMIN":
+        data_list = User.objects.all()
+    else:
+        data_list = User.objects.filter(team__name=request.user.team)
+
+    serializer = CustomUserSerializer(data_list, many=True)
+    return Response({"success": True, "data": serializer.data})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def team_detail_view(request, reference_key):
+    data = get_object_or_404(User, reference=reference_key)
+    print(data)
+    if data.team != request.user.team:
+        return Response(
+            {"success": False, "error": "data not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = UserSerializer(data)
+    print(serializer.data)
+    return Response(
+        {"success": True, "data": serializer.data}, status=status.HTTP_200_OK
+    )

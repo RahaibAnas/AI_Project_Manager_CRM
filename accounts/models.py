@@ -3,6 +3,14 @@ from django.contrib.auth.models import BaseUserManager,AbstractUser
 
 
 # Create your models here.
+class Team(models.Model):
+    id = models.BigAutoField(unique=True, primary_key=True)
+    name = models.CharField(max_length=200,null=True,blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email,password=None,**kwargs):
         if not email:
@@ -28,6 +36,7 @@ class User(AbstractUser):
     email = models.EmailField(max_length=200,unique=True)
     name = models.CharField(max_length=200,blank=True,null=True)
     role = models.CharField(max_length=200,default=UserRole.agent,choices= UserRole.choices)
+    team = models.ForeignKey(Team,on_delete=models.SET_NULL,related_name="users",null=True,blank=True)
     specialization = models.TextField(blank=True,null=True)
     skills = models.JSONField(default=list)
     reference = models.CharField(max_length=10,null=True,blank=True)
